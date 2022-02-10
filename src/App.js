@@ -98,6 +98,9 @@ class App extends Component {
 
   async componentDidMount(){
     const notes = await DataStore.query(Note);
+    console.log("-- Notes --");
+    notes.forEach(item => console.log(item.note + " | " + item.sentiment + " | " + item.spanish));
+    console.log("-- Notes retrieved --");
     this.setState( { notes: notes } )
   }  
 
@@ -138,7 +141,11 @@ class App extends Component {
 
   deleteNote = async (note) => {
     const modelToDelete = await DataStore.query(Note, note.id);
+    console.log("-- Deleting Note --");
+    console.log(modelToDelete.note);
+
     DataStore.delete(modelToDelete);
+    console.log("-- Note Deleted --");
 
     this.setState( { notes: this.state.notes.filter( (value, index, arr) => { return value.id !== note.id; }) } );
   }
@@ -161,13 +168,18 @@ class App extends Component {
     myNote.spanish = translation;
     console.log(myNote);
 
+    console.log("-- Saving Note --");
+    console.log(myNote.note + " | " + myNote.sentiment + " | " + myNote.spanish);
+
     const result = await DataStore.save(
       new Note({
         "note": myNote.note,
         "sentiment": myNote.sentiment,
         "spanish": myNote.spanish
       })
-    );  
+    );
+    console.log("-- Note Saved --");
+
     this.state.notes.push(result)
     this.setState( { notes: this.state.notes } ) 
   }
