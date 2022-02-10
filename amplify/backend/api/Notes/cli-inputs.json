@@ -3,7 +3,7 @@
   "serviceConfiguration": {
     "apiName": "Notes",
     "serviceName": "AppSync",
-    "gqlSchemaPath": "/tmp/amplify-f3f9751f-b277-48f6-9e54-a36ea2ee6b1c/amplify/backend/api/Notes/schema.graphql",
+    "gqlSchemaPath": "/tmp/amplify-fc32665a-525e-4f2f-9ecd-011277eece38/amplify/backend/api/Notes/schema.graphql",
     "defaultAuthType": {
       "mode": "AMAZON_COGNITO_USER_POOLS",
       "cognitoUserPoolId": "authNotes"
@@ -11,11 +11,6 @@
     "additionalAuthTypes": [
       {
         "mode": "AWS_IAM"
-      },
-      {
-        "mode": "API_KEY",
-        "keyDescription": "api key description",
-        "expirationTime": 30
       }
     ],
     "conflictResolution": {

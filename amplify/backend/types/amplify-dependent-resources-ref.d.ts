@@ -12,9 +12,19 @@ export type AmplifyDependentResourcesAttributes = {
     },
     "api": {
         "Notes": {
-            "GraphQLAPIKeyOutput": "string",
             "GraphQLAPIIdOutput": "string",
             "GraphQLAPIEndpointOutput": "string"
+        }
+    },
+    "predictions": {
+        "interpretTexte6bb3ea3": {
+            "region": "string",
+            "type": "string"
+        },
+        "translateText058b49d3": {
+            "region": "string",
+            "sourceLang": "string",
+            "targetLang": "string"
         }
     }
 }

@@ -1,15 +1,18 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from 'react';
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Amplify from 'aws-amplify';
 import { DataStore } from '@aws-amplify/datastore';
+import Predictions, { AmazonAIPredictionsProvider } from '@aws-amplify/predictions';
+
 import { Note } from './models';
 
 import { AmplifyAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import awsExports from "./aws-exports";
 
 Amplify.configure(awsExports);
+Amplify.addPluggable(new AmazonAIPredictionsProvider());
 
 class Header extends Component {
   render() {
@@ -68,20 +71,23 @@ class NotesList extends Component {
       <React.Fragment>
         <div className="container">
         { this.props.notes.map( (note) => 
-          <div key={note.id} className="border border-primary rounded p-3 m-3">
-            <span>{note.note}</span>
-            <button type="button" className="close" onClick={ (event) => { this.props.deleteNote(note) } }>
-              <i className="fas fa-trash-alt"></i>
-            </button>        
-          </div>
+          <div key={note.id} className="border border-primary rounded">
+              <span>{note.note} || {note.sentiment}</span>
+              
+              <br/>
+              <span>{note.spanish}</span>
+            
+              <button type="button" className="close" onClick={ (event) => { this.props.deleteNote(note) } }>
+                <i className="fas fa-trash-alt"></i>
+              </button>        
+            </div>
+    
         )}
         </div>
       </React.Fragment>
     )
   }   
 }
-
-
 
 class App extends Component {
 
@@ -92,26 +98,76 @@ class App extends Component {
 
   async componentDidMount(){
     const notes = await DataStore.query(Note);
-    console.log("Notes:" );
-    notes.forEach( item => console.log(item.note) );
     this.setState( { notes: notes } )
+  }  
+
+  async getSpanishText(textToTranslate) {
+    return Predictions.convert({
+      translateText: {
+        source: {
+          text: textToTranslate,
+        },
+      }
+    })
+    .then(result => {
+      return result.text;
+    })
+    .catch(err => {
+      console.log(err)
+    });
+  }
+
+  async getSentiment(textToInterpret) {
+    return Predictions.interpret({
+      text: {
+        source: {
+          text: textToInterpret,
+        },
+        type: "ALL"
+      }
+    })
+    .then(result => {
+      console.log(result);
+      if (result.textInterpretation.sentiment) 
+        return result.textInterpretation.sentiment.predominant
+      else 
+        return null
+    })
+    .catch(err => console.log({ err }));
   }  
 
   deleteNote = async (note) => {
     const modelToDelete = await DataStore.query(Note, note.id);
-    console.log("Deleting note: " + modelToDelete.note);
     DataStore.delete(modelToDelete);
 
     this.setState( { notes: this.state.notes.filter( (value, index, arr) => { return value.id !== note.id; }) } );
   }
   
-  addNote = async (note) => {
-    console.log("Saving note:" + note.note);
+  addNote = async (inputText) => {
+
+    let myNote = {
+      note: inputText.note
+    };
+
+    // sentiment
+    const sentiment = await this.getSentiment(myNote.note);
+    console.log(sentiment);
+    myNote.sentiment = sentiment;
+    console.log(myNote);
+
+    // translation
+    const translation = await this.getSpanishText(myNote.note);
+    console.log(translation);
+    myNote.spanish = translation;
+    console.log(myNote);
+
     const result = await DataStore.save(
       new Note({
-        "note": note.note
+        "note": myNote.note,
+        "sentiment": myNote.sentiment,
+        "spanish": myNote.spanish
       })
-    ); 
+    );  
     this.state.notes.push(result)
     this.setState( { notes: this.state.notes } ) 
   }
@@ -132,4 +188,3 @@ class App extends Component {
 }
 
 export default App;
-
